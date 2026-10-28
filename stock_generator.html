@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Vault - Premium Stock Distribution</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#090d16',
+                        cardBg: '#111827',
+                        accent: '#6366f1',
+                        accentHover: '#4f46e5',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #090d16; }
+        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #374151; }
+    </style>
+</head>
+<body class="bg-[#090d16] text-slate-100 min-h-screen font-sans flex flex-col justify-between antialiased">
+
+    <!-- TOP NAVBAR -->
+    <header class="border-b border-slate-800/80 bg-[#0c1220]/80 backdrop-blur sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="goHome()">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-cubes text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg tracking-wider text-white">NEXUS VAULT</h1>
+                    <p class="text-[10px] text-indigo-400 font-semibold tracking-widest uppercase">Stock Distribution</p>
+                </div>
+            </div>
+
+            <!-- Navigation Actions -->
+            <div class="flex items-center space-x-3" id="nav-actions">
+                <!-- Dynamic Auth & Admin buttons rendered by JS -->
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+        <!-- Dashboard / Services Grid View -->
+        <div id="view-dashboard" class="space-y-6">
+            <!-- Welcome Banner -->
+            <div class="p-6 rounded-2xl bg-gradient-to-r from-indigo-900/40 via-purple-900/20 to-slate-900 border border-indigo-500/20 relative overflow-hidden">
+                <div class="relative z-10 max-w-2xl space-y-2">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white">Select a Service to Get Stock</h2>
+                    <p class="text-slate-400 text-sm">Instant free account generator. Login with Google to claim up to 5 accounts per service every 24 hours.</p>
+                </div>
+                <i class="fa-solid fa-boxes-stacked absolute right-6 -bottom-6 text-9xl text-indigo-500/10 pointer-events-none"></i>
+            </div>
+
+            <!-- Search Filter -->
+            <div class="flex items-center justify-between gap-4">
+                <div class="relative flex-1 max-w-md">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                    <input type="text" id="search-input" oninput="renderCategories()" placeholder="Search services..." class="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500 transition text-slate-200">
+                </div>
+                <div class="text-xs text-slate-400 font-medium hidden sm:block">
+                    Total Services: <span id="total-services-count" class="text-indigo-400 font-bold">0</span>
+                </div>
+            </div>
+
+            <!-- Category Grid -->
+            <div id="category-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <!-- Service Detail View -->
+        <div id="view-service" class="hidden space-y-6">
+            <button onclick="goHome()" class="flex items-center space-x-2 text-slate-400 hover:text-white transition text-sm font-medium">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Back to Services</span>
+            </button>
+
+            <!-- Active Service Header -->
+            <div id="service-header-card" class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <!-- Header Info injected JS -->
+            </div>
+
+            <!-- Claim Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Generator Box -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 space-y-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-bolt text-amber-400"></i> Account Generator
+                            </h3>
+                            <span id="daily-quota-badge" class="px-2.5 py-1 text-xs font-semibold rounded-md bg-slate-800 text-slate-300">
+                                Quota: 0/5 Used
+                            </span>
+                        </div>
+
+                        <!-- Claim Display Box -->
+                        <div id="claim-display-area" class="p-5 rounded-xl bg-slate-950 border border-slate-800 text-center space-y-3">
+                            <p class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Your Claimed Account</p>
+                            <div id="claimed-account-text" class="text-base sm:text-lg font-mono font-bold text-indigo-400 break-all select-all">
+                                Click "Claim Account" below
+                            </div>
+                            <button id="copy-btn" onclick="copyClaimedText()" class="hidden mx-auto px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 rounded-lg transition items-center gap-2">
+                                <i class="fa-solid fa-copy"></i> Copy to Clipboard
+                            </button>
+                        </div>
+
+                        <!-- Claim Action Button -->
+                        <div>
+                            <button id="claim-action-btn" onclick="handleClaim()" class="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 font-bold text-white rounded-xl shadow-lg shadow-indigo-600/25 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-gift"></i>
+                                <span>Claim Account</span>
+                            </button>
+                            <p id="claim-warning-msg" class="text-xs text-amber-400 text-center mt-2 hidden"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Claim History Box -->
+                <div class="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 space-y-4">
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-indigo-400"></i> Your Claim History
+                    </h3>
+                    <p class="text-xs text-slate-400">Accounts claimed by you in this service (resets every 24h):</p>
+                    <div id="history-list" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                        <!-- JS Injected -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-800/60 bg-[#080c14] py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
+            &copy; 2026 Nexus Vault Systems. All account stock is stored and managed securely.
+        </div>
+    </footer>
+
+    <!-- MODAL: GOOGLE SIGN-IN SIMULATOR -->
+    <div id="google-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 space-y-5 text-center shadow-2xl">
+            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto shadow">
+                <svg class="w-6 h-6" viewBox="0 0 24 24">
+                    <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.2 9 5 12 5z"/>
+                    <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
+                    <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12s.7 2.3 1.9 4.7l3.7-2.9z"/>
+                    <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.2-6.4-5.2L1.9 16c1.8 3.7 5.6 7 10.1 7z"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-white">Sign in with Google</h3>
+                <p class="text-xs text-slate-400 mt-1">Authenticating allows you to claim up to 5 accounts per service daily.</p>
+            </div>
+            <div class="space-y-3">
+                <input type="email" id="google-email-input" placeholder="Enter your email address" value="user@gmail.com" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500 text-slate-200">
+                <button onclick="confirmGoogleLogin()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm transition">
+                    Continue with Google
+                </button>
+            </div>
+            <button onclick="closeModal('google-modal')" class="text-xs text-slate-500 hover:text-slate-300">Cancel</button>
+        </div>
+    </div>
+
+    <!-- MODAL: ADMIN LOGIN -->
+    <div id="admin-login-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 space-y-5 shadow-2xl relative">
+            <button onclick="closeModal('admin-login-modal')" class="absolute top-4 right-4 text-slate-500 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="text-center space-y-1">
+                <div class="w-12 h-12 bg-indigo-600/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-2">
+                    <i class="fa-solid fa-user-shield text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white">Admin Authentication</h3>
+                <p class="text-xs text-slate-400">Enter your credentials to access management</p>
+            </div>
+            <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Username</label>
+                    <input type="text" id="admin-user-input" required placeholder="admin" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500 text-slate-200">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Password</label>
+                    <input type="password" id="admin-pass-input" required placeholder="admin123" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500 text-slate-200">
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm transition">
+                    Access Admin Panel
+                </button>
+            </form>
+            <p class="text-[11px] text-slate-500 text-center">Default: <code class="text-slate-400">admin</code> / <code class="text-slate-400">admin123</code></p>
+        </div>
+    </div>
+
+    <!-- MODAL: FULL ADMIN PANEL -->
+    <div id="admin-panel-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <!-- Admin Header -->
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+                <div class="flex items-center space-x-2">
+                    <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-md uppercase border border-emerald-500/20">Admin Active</span>
+                    <h3 class="text-lg font-bold text-white">Stock Vault Management</h3>
+                </div>
+                <button onclick="closeModal('admin-panel-modal')" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Admin Nav Tabs -->
+            <div class="flex border-b border-slate-800 bg-slate-900/50 px-6 gap-6 text-sm font-semibold">
+                <button id="tab-btn-add" onclick="switchAdminTab('add')" class="py-3 border-b-2 border-indigo-500 text-indigo-400">
+                    <i class="fa-solid fa-plus-circle mr-1.5"></i> Import Stock
+                </button>
+                <button id="tab-btn-cats" onclick="switchAdminTab('cats')" class="py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-layer-group mr-1.5"></i> Manage Services
+                </button>
+                <button id="tab-btn-settings" onclick="switchAdminTab('settings')" class="py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-gear mr-1.5"></i> Security Settings
+                </button>
+            </div>
+
+            <!-- Admin Body (Scrollable) -->
+            <div class="p-6 overflow-y-auto flex-1 space-y-6">
+                <!-- TAB 1: ADD STOCK -->
+                <div id="tab-content-add" class="space-y-4">
+                    <div>
+                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Select Service</label>
+                        <select id="import-cat-select" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500 text-slate-200">
+                            <!-- Injected JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Accounts (1 account per line)</label>
+                        <textarea id="import-stock-input" rows="5" placeholder="user1:pass1&#10;user2:pass2&#10;user3:pass3" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm font-mono focus:outline-none focus:border-indigo-500 text-slate-200"></textarea>
+                    </div>
+                    <button onclick="handleBulkImport()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm transition flex items-center space-x-2">
+                        <i class="fa-solid fa-file-import"></i>
+                        <span>Import Accounts</span>
+                    </button>
+
+                    <!-- Stock Inspector -->
+                    <div class="pt-4 border-t border-slate-800 space-y-3">
+                        <h4 class="text-sm font-bold text-white uppercase tracking-wider">Inspect & Delete Individual Stock</h4>
+                        <div id="admin-stock-inspector" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: MANAGE CATEGORIES -->
+                <div id="tab-content-cats" class="hidden space-y-6">
+                    <!-- Create New Service -->
+                    <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+                        <h4 class="text-sm font-bold text-white">Add New Service</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <input type="text" id="new-cat-id" placeholder="Service Name (e.g. Netflix)" class="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500 text-slate-200">
+                            <input type="text" id="new-cat-desc" placeholder="Short Description" class="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500 text-slate-200">
+                        </div>
+                        <button type="button" onclick="handleAddCategory()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition">
+                            + Create Service
+                        </button>
+                    </div>
+
+                    <!-- Existing Services List with DIRECT DELETE -->
+                    <div class="space-y-3">
+                        <h4 class="text-sm font-bold text-white uppercase tracking-wider">Existing Services</h4>
+                        <div id="admin-category-list" class="space-y-2">
+                            <!-- JS Injected -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: SETTINGS -->
+                <div id="tab-content-settings" class="hidden space-y-4 max-w-md">
+                    <h4 class="text-sm font-bold text-white">Change Admin Credentials</h4>
+                    <div>
+                        <label class="text-xs font-semibold text-slate-400 uppercase block mb-1">New Username</label>
+                        <input type="text" id="change-user-input" placeholder="New username" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500 text-slate-200">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-slate-400 uppercase block mb-1">New Password</label>
+                        <input type="password" id="change-pass-input" placeholder="New password" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500 text-slate-200">
+                    </div>
+                    <button onclick="handleChangeCredentials()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm transition">
+                        Update Credentials
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <script>
+        // INITIAL DEFAULT DATA
+        const DEFAULT_CATEGORIES = [
+            { id: "Minecraft", desc: "Java & Bedrock full access accounts", icon: "fa-cubes" },
+            { id: "Discord", desc: "Aged accounts & Nitro claim tokens", icon: "fa-brands fa-discord" },
+            { id: "Steam", desc: "Accounts with game licenses", icon: "fa-brands fa-steam" },
+            { id: "Hotmail", desc: "Clean email access accounts", icon: "fa-envelope" },
+            { id: "Roblox", desc: "Aged profiles & Robux loaded accounts", icon: "fa-gamepad" },
+            { id: "Spotify", desc: "Premium individual & family invites", icon: "fa-spotify" }
+        ];
+
+        const DEFAULT_STOCKS = {
+            "Minecraft": ["mc_user1:pass123", "mc_user2:pass456"],
+            "Discord": ["token_x89fjs9a1823"],
+            "Steam": ["steam_acc_01:pass99"],
+            "Hotmail": [],
+            "Roblox": ["roblox_player:pass888"],
+            "Spotify": []
+        };
+
+        // APPLICATION STATE
+        let categories = JSON.parse(localStorage.getItem('nv_categories')) || DEFAULT_CATEGORIES;
+        let stocks = JSON.parse(localStorage.getItem('nv_stocks')) || DEFAULT_STOCKS;
+        let adminCreds = JSON.parse(localStorage.getItem('nv_admin')) || { user: 'admin', pass: 'admin123' };
+        
+        let currentUser = JSON.parse(localStorage.getItem('nv_user')) || null;
+        let userClaims = JSON.parse(localStorage.getItem('nv_claims')) || {};
+        
+        let isAdminLoggedIn = false;
+        let activeCategory = null;
+        let currentClaimedItem = null;
+
+        // INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            renderNav();
+            renderCategories();
+            populateImportDropdown();
+        });
+
+        // TOAST NOTIFICATIONS
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bg = type === 'success' ? 'bg-emerald-600' : 'bg-rose-600';
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-triangle-exclamation';
+            
+            toast.className = `${bg} text-white text-xs font-bold px-4 py-3 rounded-xl shadow-xl flex items-center space-x-2 transition transform translate-y-2 pointer-events-auto`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        // SAVE DATA TO LOCAL STORAGE
+        function saveData() {
+            localStorage.setItem('nv_categories', JSON.stringify(categories));
+            localStorage.setItem('nv_stocks', JSON.stringify(stocks));
+            localStorage.setItem('nv_admin', JSON.stringify(adminCreds));
+            localStorage.setItem('nv_user', JSON.stringify(currentUser));
+            localStorage.setItem('nv_claims', JSON.stringify(userClaims));
+        }
+
+        // RENDER NAVBAR
+        function renderNav() {
+            const container = document.getElementById('nav-actions');
+            let html = '';
+
+            if (currentUser) {
+                html += `
+                    <div class="flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span class="text-slate-300 font-semibold max-w-[100px] truncate">${currentUser.email}</span>
+                        <button onclick="handleGoogleLogout()" class="text-slate-500 hover:text-rose-400 ml-1"><i class="fa-solid fa-right-from-bracket"></i></button>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <button onclick="openModal('google-modal')" class="px-3.5 py-1.5 bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-bold text-slate-200 rounded-xl transition flex items-center space-x-1.5">
+                        <i class="fa-brands fa-google text-indigo-400"></i>
+                        <span>Sign In</span>
+                    </button>
+                `;
+            }
+
+            if (isAdminLoggedIn) {
+                html += `
+                    <button onclick="openModal('admin-panel-modal')" class="px-3.5 py-1.5 bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-600/30 text-xs font-bold rounded-xl transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Admin Panel</span>
+                    </button>
+                    <button onclick="handleAdminLogout()" class="px-2 py-1.5 bg-slate-900 text-slate-400 hover:text-white rounded-xl text-xs"><i class="fa-solid fa-lock"></i></button>
+                `;
+            } else {
+                html += `
+                    <button onclick="openModal('admin-login-modal')" class="px-3.5 py-1.5 bg-slate-900 border border-slate-800 hover:border-indigo-500/50 text-xs font-bold text-slate-300 rounded-xl transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-lock text-slate-400"></i>
+                        <span>Admin Login</span>
+                    </button>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // RENDER CATEGORIES ON DASHBOARD
+        function renderCategories() {
+            const grid = document.getElementById('category-grid');
+            const search = document.getElementById('search-input').value.toLowerCase();
+            document.getElementById('total-services-count').innerText = categories.length;
+
+            const filtered = categories.filter(c => String(c.id).toLowerCase().includes(search) || String(c.desc).toLowerCase().includes(search));
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500 text-sm">No services found.</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(cat => {
+                const stockList = stocks[cat.id] || [];
+                const count = stockList.length;
+                const inStock = count > 0;
+                const safeId = String(cat.id).replace(/'/g, "\\'");
+
+                return `
+                    <div onclick="openService('${safeId}')" class="group p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-indigo-500/50 transition duration-200 cursor-pointer flex flex-col justify-between space-y-4 relative overflow-hidden">
+                        <div class="flex items-start justify-between">
+                            <div class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700/50 flex items-center justify-center text-indigo-400 group-hover:scale-105 transition">
+                                <i class="${cat.icon || 'fa-solid fa-box'} text-xl"></i>
+                            </div>
+                            <span class="px-2.5 py-1 text-[11px] font-bold rounded-md uppercase tracking-wider ${inStock ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
+                                ${inStock ? `In Stock (${count})` : 'Out of Stock'}
+                            </span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-indigo-400 transition">${cat.id}</h3>
+                            <p class="text-xs text-slate-400 mt-1 line-clamp-2">${cat.desc}</p>
+                        </div>
+                        <div class="pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400 font-semibold group-hover:text-indigo-300">
+                            <span>Open Vault</span>
+                            <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition"></i>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // OPEN SERVICE VIEW
+        function openService(catId) {
+            activeCategory = categories.find(c => String(c.id) === String(catId));
+            if (!activeCategory) return;
+
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-service').classList.remove('hidden');
+
+            renderServiceView();
+        }
+
+        function goHome() {
+            activeCategory = null;
+            currentClaimedItem = null;
+            document.getElementById('view-service').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            renderCategories();
+        }
+
+        // RENDER SERVICE DETAIL
+        function renderServiceView() {
+            if (!activeCategory) return;
+            const stockList = stocks[activeCategory.id] || [];
+            const count = stockList.length;
+            const inStock = count > 0;
+
+            document.getElementById('service-header-card').innerHTML = `
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-2xl">
+                        <i class="${activeCategory.icon || 'fa-solid fa-box'}"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">${activeCategory.id}</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">${activeCategory.desc}</p>
+                    </div>
+                </div>
+                <div class="px-3 py-1.5 rounded-xl ${inStock ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'} font-bold text-xs">
+                    ${inStock ? `Available Stock: ${count}` : 'Out of Stock'}
+                </div>
+            `;
+
+            if (currentClaimedItem) {
+                document.getElementById('claimed-account-text').innerText = currentClaimedItem;
+                document.getElementById('copy-btn').classList.remove('hidden');
+                document.getElementById('copy-btn').classList.add('flex');
+            } else {
+                document.getElementById('claimed-account-text').innerText = 'Click "Claim Account" below';
+                document.getElementById('copy-btn').classList.add('hidden');
+                document.getElementById('copy-btn').classList.remove('flex');
+            }
+
+            const userQuota = getUserQuota(activeCategory.id);
+            document.getElementById('daily-quota-badge').innerText = `Quota: ${userQuota.used}/5 Used Today`;
+
+            const claimBtn = document.getElementById('claim-action-btn');
+            const warningMsg = document.getElementById('claim-warning-msg');
+
+            warningMsg.classList.add('hidden');
+            claimBtn.disabled = false;
+
+            if (!inStock) {
+                claimBtn.disabled = true;
+                warningMsg.innerText = "Currently out of stock! Check back later.";
+                warningMsg.classList.remove('hidden');
+            } else if (userQuota.used >= 5) {
+                claimBtn.disabled = true;
+                warningMsg.innerText = "Daily claim limit reached (5/5). Resets in 24 hours.";
+                warningMsg.classList.remove('hidden');
+            } else if (!currentUser) {
+                warningMsg.innerText = "Please Sign In with Google to claim accounts.";
+                warningMsg.classList.remove('hidden');
+            }
+
+            renderClaimHistory();
+        }
+
+        // GET USER QUOTA & 24-HOUR AUTOMATIC RESET
+        function getUserQuota(catId) {
+            if (!currentUser) return { used: 0, items: [] };
+
+            const email = currentUser.email;
+            if (!userClaims[email]) userClaims[email] = {};
+            if (!userClaims[email][catId]) {
+                userClaims[email][catId] = { used: 0, lastResetTime: Date.now(), items: [] };
+            }
+
+            const record = userClaims[email][catId];
+            const now = Date.now();
+            if (now - record.lastResetTime >= 86400000) {
+                record.used = 0;
+                record.lastResetTime = now;
+                record.items = [];
+                saveData();
+            }
+
+            return record;
+        }
+
+        // CLAIM ACCOUNT ACTION
+        function handleClaim() {
+            if (!currentUser) {
+                openModal('google-modal');
+                return;
+            }
+
+            if (!activeCategory) return;
+            const catId = activeCategory.id;
+            const stockList = stocks[catId] || [];
+
+            if (stockList.length === 0) {
+                showToast('Out of stock!', 'error');
+                return;
+            }
+
+            const userQuota = getUserQuota(catId);
+            if (userQuota.used >= 5) {
+                showToast('Daily limit reached (5/5)!', 'error');
+                return;
+            }
+
+            const claimedItem = stockList.shift();
+            currentClaimedItem = claimedItem;
+
+            userQuota.used += 1;
+            userQuota.items.unshift({ text: claimedItem, time: new Date().toLocaleTimeString() });
+
+            saveData();
+            showToast('Account claimed successfully!');
+            renderServiceView();
+        }
+
+        function copyClaimedText() {
+            if (!currentClaimedItem) return;
+            navigator.clipboard.writeText(currentClaimedItem);
+            showToast('Copied to clipboard!');
+        }
+
+        function renderClaimHistory() {
+            const list = document.getElementById('history-list');
+            if (!currentUser || !activeCategory) {
+                list.innerHTML = `<p class="text-xs text-slate-500 italic">Sign in to view your history.</p>`;
+                return;
+            }
+
+            const userQuota = getUserQuota(activeCategory.id);
+            if (userQuota.items.length === 0) {
+                list.innerHTML = `<p class="text-xs text-slate-500 italic">No claimed accounts today.</p>`;
+                return;
+            }
+
+            list.innerHTML = userQuota.items.map(i => `
+                <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono flex items-center justify-between">
+                    <span class="text-slate-300 truncate mr-2">${i.text}</span>
+                    <span class="text-[10px] text-slate-500 shrink-0">${i.time}</span>
+                </div>
+            `).join('');
+        }
+
+        // GOOGLE LOGIN SIMULATION
+        function confirmGoogleLogin() {
+            const email = document.getElementById('google-email-input').value.trim();
+            if (!email) return;
+
+            currentUser = { email: email };
+            saveData();
+            closeModal('google-modal');
+            renderNav();
+            showToast(`Signed in as ${email}`);
+
+            if (activeCategory) renderServiceView();
+        }
+
+        function handleGoogleLogout() {
+            currentUser = null;
+            saveData();
+            renderNav();
+            showToast('Logged out');
+            if (activeCategory) renderServiceView();
+        }
+
+        // ADMIN LOGIN
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('admin-user-input').value.trim();
+            const p = document.getElementById('admin-pass-input').value.trim();
+
+            if (u === adminCreds.user && p === adminCreds.pass) {
+                isAdminLoggedIn = true;
+                closeModal('admin-login-modal');
+                renderNav();
+                openModal('admin-panel-modal');
+                renderAdminPanel();
+                showToast('Admin access granted!');
+            } else {
+                showToast('Invalid Username or Password', 'error');
+            }
+        }
+
+        function handleAdminLogout() {
+            isAdminLoggedIn = false;
+            closeModal('admin-panel-modal');
+            renderNav();
+            showToast('Admin logged out');
+        }
+
+        // RENDER ADMIN PANEL CONTENT
+        function renderAdminPanel() {
+            populateImportDropdown();
+            renderAdminStockInspector();
+            renderAdminCategoriesList();
+        }
+
+        function switchAdminTab(tab) {
+            ['add', 'cats', 'settings'].forEach(t => {
+                document.getElementById(`tab-content-${t}`).classList.add('hidden');
+                document.getElementById(`tab-btn-${t}`).className = "py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200";
+            });
+
+            document.getElementById(`tab-content-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-btn-${tab}`).className = "py-3 border-b-2 border-indigo-500 text-indigo-400";
+        }
+
+        function populateImportDropdown() {
+            const select = document.getElementById('import-cat-select');
+            select.innerHTML = categories.map(c => `<option value="${c.id}">${c.id}</option>`).join('');
+            select.onchange = renderAdminStockInspector;
+        }
+
+        // BULK IMPORT
+        function handleBulkImport() {
+            const catId = document.getElementById('import-cat-select').value;
+            const text = document.getElementById('import-stock-input').value;
+            if (!text.trim()) return;
+
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            if (!stocks[catId]) stocks[catId] = [];
+
+            stocks[catId].push(...lines);
+            saveData();
+            document.getElementById('import-stock-input').value = '';
+
+            renderAdminStockInspector();
+            showToast(`Added ${lines.length} items to ${catId}`);
+            if (activeCategory) renderServiceView();
+            renderCategories();
+        }
+
+        // INSPECT & DELETE INDIVIDUAL STOCK
+        function renderAdminStockInspector() {
+            const catId = document.getElementById('import-cat-select').value;
+            const inspector = document.getElementById('admin-stock-inspector');
+            if (!catId || !stocks[catId] || stocks[catId].length === 0) {
+                inspector.innerHTML = `<p class="text-xs text-slate-500 italic">No stock accounts available for ${catId}.</p>`;
+                return;
+            }
+
+            inspector.innerHTML = stocks[catId].map((item, index) => {
+                const safeCatId = String(catId).replace(/'/g, "\\'");
+                return `
+                    <div class="p-2 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-between text-xs font-mono">
+                        <span class="text-slate-300 truncate mr-2">${item}</span>
+                        <button onclick="deleteSingleStock('${safeCatId}', ${index})" class="text-rose-400 hover:text-rose-300 p-1">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function deleteSingleStock(catId, index) {
+            if (stocks[catId]) {
+                stocks[catId].splice(index, 1);
+                saveData();
+                renderAdminStockInspector();
+                showToast('Stock item deleted');
+                if (activeCategory) renderServiceView();
+                renderCategories();
+            }
+        }
+
+        // CREATE NEW CATEGORY/SERVICE
+        function handleAddCategory() {
+            const idInput = document.getElementById('new-cat-id').value.trim();
+            const desc = document.getElementById('new-cat-desc').value.trim();
+
+            if (!idInput) {
+                showToast('Enter a service name', 'error');
+                return;
+            }
+
+            if (categories.some(c => String(c.id).toLowerCase() === String(idInput).toLowerCase())) {
+                showToast('Service already exists', 'error');
+                return;
+            }
+
+            categories.push({ id: idInput, desc: desc || 'Custom free accounts service', icon: 'fa-solid fa-box' });
+            stocks[idInput] = [];
+            saveData();
+
+            document.getElementById('new-cat-id').value = '';
+            document.getElementById('new-cat-desc').value = '';
+
+            renderAdminPanel();
+            renderCategories();
+            showToast(`Service "${idInput}" created!`);
+        }
+
+        // DIRECT DELETE CATEGORY FUNCTION
+        function deleteCategoryDirect(catId) {
+            categories = categories.filter(c => String(c.id) !== String(catId));
+            delete stocks[catId];
+
+            saveData();
+
+            renderAdminCategoriesList();
+            populateImportDropdown();
+            renderAdminStockInspector();
+            renderCategories();
+
+            if (activeCategory && String(activeCategory.id) === String(catId)) {
+                goHome();
+            }
+
+            showToast(`Service deleted successfully!`);
+        }
+
+        function renderAdminCategoriesList() {
+            const container = document.getElementById('admin-category-list');
+            if (categories.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 italic">No services available.</p>`;
+                return;
+            }
+
+            container.innerHTML = categories.map(c => {
+                const count = (stocks[c.id] || []).length;
+                const safeId = String(c.id).replace(/'/g, "\\'");
+                return `
+                    <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-bold text-white">${c.id}</p>
+                            <p class="text-xs text-slate-400">${count} accounts stored</p>
+                        </div>
+                        <button type="button" onclick="deleteCategoryDirect('${safeId}')" class="px-3 py-1.5 bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 font-bold text-xs rounded-lg transition flex items-center space-x-1.5 cursor-pointer">
+                            <i class="fa-solid fa-trash"></i>
+                            <span>Delete Service</span>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // CHANGE CREDENTIALS
+        function handleChangeCredentials() {
+            const u = document.getElementById('change-user-input').value.trim();
+            const p = document.getElementById('change-pass-input').value.trim();
+
+            if (!u || !p) {
+                showToast('Enter valid username and password', 'error');
+                return;
+            }
+
+            adminCreds = { user: u, pass: p };
+            saveData();
+            document.getElementById('change-user-input').value = '';
+            document.getElementById('change-pass-input').value = '';
+            showToast('Admin credentials updated!');
+        }
+
+        // MODAL HELPERS
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
